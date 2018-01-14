@@ -220,6 +220,7 @@ authPage:
       disabled:
         label: GitHub 未设置
         labelGitlab: GitLab 未设置
+        labelGitee: Gitee 未设置
         warning: "{appName} 可以设置为允许一组 GitHub 用户和组织成员访问。 由于当前未完成此设置，所以任何可以访问此页面(或API)的用户都对系统有完全控制权限。"
     authenticated:
       header:
@@ -240,6 +241,7 @@ authPage:
         li1:
           text: '标准GitHub， <a href="https://github.com/settings/developers" target="_blank">点击此处</a> 在弹出的新窗口中进行应用设置。'
           gitlabText: '标准GitLab， <a target="blank" href="https://gitlab.com/profile/applications">点击此处</a> 在弹出的新窗口中进行应用设置。'
+          giteeText: '标准Gitee， <a target="blank" href="https://gitee.com/oauth/applications">点击此处</a> 在弹出的新窗口中进行应用设置。'
           ul:
             li1: "企业版GitHub，请登录你的账号，点击Settings，然后点击Applications进行设置。"
         li2:

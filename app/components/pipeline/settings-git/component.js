@@ -5,9 +5,11 @@ import C from 'ui/utils/constants';
 function oauthURIGenerator(clientId){
   return {
     'gitlab': '/oauth/authorize?client_id=' + clientId + '&response_type=code',
+    'gitee': '/oauth/authorize?client_id=' + clientId + '&response_type=code',
     'github': '/login/oauth/authorize?client_id=' + clientId + '&response_type=code&scope=repo+admin%3Arepo_hook'
   }
 }
+
 export default Ember.Component.extend({
   accountId: function() {
     return this.get('session.' + C.SESSION.ACCOUNT_ID)
@@ -29,20 +31,27 @@ export default Ember.Component.extend({
     this._super();
     // set default oauth
     var scmSettings = this.get('scmSettings');
+    var giteeOauthed = scmSettings.find(ele => ele.scmType === 'gitee' && ele.isAuth);
     var gitlabOauthed = scmSettings.find(ele => ele.scmType === 'gitlab' && ele.isAuth);
     var githubOauthed = scmSettings.find(ele => ele.scmType === 'github' && ele.isAuth);
     var pipelineStore = this.get('pipelineStore');
+    if (!giteeOauthed) {
+      giteeOauthed = pipelineStore.createRecord({ type: 'scmSetting', scmType: 'gitee', id: 'gitee' });
+      scmSettings.addObject(giteeOauthed);
+    } else {
+      giteeOauthed && this.set('selectedOauthType', 'gitee');
+      this.set('oauthModel', giteeOauthed);
+    }
     if (!gitlabOauthed) {
       gitlabOauthed = pipelineStore.createRecord({ type: 'scmSetting', scmType: 'gitlab', id: 'gitlab' });
       scmSettings.addObject(gitlabOauthed);
+    } else {
+      gitlabOauthed && this.set('selectedOauthType', 'gitlab');
+      this.set('oauthModel', gitlabOauthed);
     }
     if (!githubOauthed) {
       githubOauthed = pipelineStore.createRecord({ type: 'scmSetting', scmType: 'github', id: 'github' });
       scmSettings.addObject(githubOauthed);
-    }
-    if (!githubOauthed && gitlabOauthed) {
-      gitlabOauthed && this.set('selectedOauthType', 'gitlab');
-      this.set('oauthModel', gitlabOauthed);
     } else {
       githubOauthed && this.set('oauthModel', githubOauthed);
     }
@@ -51,7 +60,7 @@ export default Ember.Component.extend({
     var scmSettings = this.get('scmSettings');
     var type = this.get('selectedOauthType');
     var pipelineStore = this.get('pipelineStore');
-    var oauthModel = scmSettings.find(ele => ele.scmType === type);
+    var oauthModel = scmSettings.find(ele => ele && ele.scmType === type);
     if (!oauthModel || oauthModel.status === 'removed') {
       oauthModel = pipelineStore.createRecord({ type: 'scmSetting', scmType: type, id: type });
     }
@@ -80,6 +89,11 @@ export default Ember.Component.extend({
     var accounts = this.get('accounts');
     var accountId = this.get('accountId');
     return accounts.filter(ele => ele.accountType === 'gitlab');
+  }.property('accounts.[]'),
+  giteeAccounts: function() {
+    var accounts = this.get('accounts');
+    var accountId = this.get('accountId');
+    return accounts.filter(ele => ele.accountType === 'gitee');
   }.property('accounts.[]'),
   updateEnterprise: function() {
     if (this.get('isEnterprise')) {
@@ -110,7 +124,7 @@ export default Ember.Component.extend({
     changeOauthType: function(type) {
       this.set('selectedOauthType', type);
       var pipelineStore = this.get('pipelineStore');
-      var oauthModel = this.get('scmSettings').filter(ele => ele.scmType === type);
+      var oauthModel = this.get('scmSettings').filter(ele => ele && ele.scmType === type);
       oauthModel = oauthModel[oauthModel.length - 1];
       if (!oauthModel || oauthModel.status === 'removed') {
         oauthModel = pipelineStore.createRecord({ type: 'scmSetting', scmType: type, id: type });
@@ -178,6 +192,10 @@ export default Ember.Component.extend({
             }
           }
           authorizeURL = scheme + oauthHostName + oauthURI['github'];
+        }
+        if (this.get('selectedOauthType') === 'gitee') {
+          oauthHostName = 'gitee.com';
+          authorizeURL = scheme + oauthHostName + oauthURI['gitee'];
         }
       }
       

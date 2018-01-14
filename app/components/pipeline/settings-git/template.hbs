@@ -12,6 +12,8 @@
       <a href="#" alt='github' class="col span-2 nav-box-item driver auth-driver github {{if (eq selectedOauthType 'github') 'active' ''}}" {{action "changeOauthType" "github"}}></a>
       <div class="col span-1"></div>
       <a href="#" alt='gitlab' class="col span-2 nav-box-item driver auth-driver gitlab {{if (eq selectedOauthType 'gitlab') 'active' ''}}" {{action "changeOauthType" "gitlab"}}></a>
+      <div class="col span-1"></div>
+      <a href="#" alt='gitee' class="col span-2 nav-box-item driver auth-driver gitlab {{if (eq selectedOauthType 'gitee') 'active' ''}}" {{action "changeOauthType" "gitee"}}></a>
   </div>
 </section>
 
@@ -28,6 +30,9 @@
         {{/if}}
         {{#if (eq selectedOauthType 'gitlab')}}
           <p>{{t 'authPage.github.header.disabled.labelGitlab'}}</p>
+        {{/if}}
+        {{#if (eq selectedOauthType 'gitee')}}
+          <p>{{t 'authPage.github.header.disabled.labelGitee'}}</p>
         {{/if}}
       </div>
     </div>
@@ -90,6 +95,22 @@
         {{/each}}
       </ul>
     {{/if}}
+
+    {{#if (and giteeAccounts.length (eq selectedOauthType 'gitee'))}}
+      <ul class="row list-unstyled gh-block-list mt-10">
+        {{#each giteeAccounts as |item|}}
+          <li class="col span-6 average" style="padding-right: 50px; position: relative; top:0; border-bottom: 1px solid #F15354;">
+            <div>
+              {{#identity-block identity=item}}
+              {{/identity-block}}
+            </div>
+            <button {{action "removeAccount" item}} class="btn bg-error" style="position: absolute; right:0; top: 0; height: 100%; border-radius: 0;">
+              <i class="icon icon-close"></i>
+            </button>
+          </li>
+        {{/each}}
+      </ul>
+    {{/if}}
   </section>
 
   <section class="box mt-30">
@@ -125,11 +146,19 @@
           {{{t 'authPage.github.notAuthenticated.ul.li1.gitlabText'}}}
         </li>
         {{/if}}
+        {{#if (eq selectedOauthType 'gitee')}}
+        <li>
+          {{{t 'authPage.github.notAuthenticated.ul.li1.text'}}}
+        </li>
+        {{/if}}
         <li>
           {{#if (eq selectedOauthType 'github')}}
             {{t 'authPage.github.notAuthenticated.ul.li2.text'}}
           {{/if}}
           {{#if (eq selectedOauthType 'gitlab')}}
+            {{t 'authPage.github.notAuthenticated.ul.li2.text2'}}
+          {{/if}}
+          {{#if (eq selectedOauthType 'gitee')}}
             {{t 'authPage.github.notAuthenticated.ul.li2.text2'}}
           {{/if}}
           <ul>
@@ -140,7 +169,9 @@
               {{#if (eq selectedOauthType 'gitlab')}}
                 {{t 'authPage.github.notAuthenticated.ul.li2.ul.li1_2' appName="Rancher Pipeline" htmlSafe=true}}
               {{/if}}
-              
+              {{#if (eq selectedOauthType 'gitee')}}
+                {{t 'authPage.github.notAuthenticated.ul.li2.ul.li1_2' appName="Rancher Pipeline" htmlSafe=true}}
+              {{/if}}
             </li>
             {{#if (eq selectedOauthType 'github')}}
             <li>
@@ -155,6 +186,9 @@
               {{#if (eq selectedOauthType 'gitlab')}}
                 <b>{{t 'authPage.github.notAuthenticated.ul.li2.ul.li4_2'}}</b> 
               {{/if}}
+              {{#if (eq selectedOauthType 'gitee')}}
+                <b>{{t 'authPage.github.notAuthenticated.ul.li2.ul.li4_2'}}</b> 
+              {{/if}}
               <span id="auth-callback-url">{{destinationUrl}} {{copy-to-clipboard size='small' clipboardText=destinationUrl}}</span></li>
           </ul>
         </li>
@@ -163,6 +197,9 @@
           {{t 'authPage.github.notAuthenticated.ul.li3.text'}}
         {{/if}}
         {{#if (eq selectedOauthType 'gitlab')}}
+          {{t 'authPage.github.notAuthenticated.ul.li3.text2'}}
+        {{/if}}
+        {{#if (eq selectedOauthType 'gitee')}}
           {{t 'authPage.github.notAuthenticated.ul.li3.text2'}}
         {{/if}}
         </li>
@@ -185,20 +222,31 @@
           <div class="inline-form">
             <label class="acc-label pb-5">{{t 'authPage.github.notAuthenticated.form.clientSecret.labelText'}}{{field-required}}</label>
             {{input type="password" name="password" value=oauthModel.clientSecret classNames="form-control"}}
-            <div class="checkbox pt-10">
-              <label class="acc-label pb-5">{{input type="checkbox" checked=isEnterprise}} {{#if (eq selectedOauthType 'github')}} {{t 'authPage.github.notAuthenticated.form.ghEnterprise.labelText'}} {{/if}} {{#if (eq selectedOauthType 'gitlab')}} {{t 'authPage.github.notAuthenticated.form.glPrivate.labelText'}}{{/if}}</label>
-            </div>
-            {{#liquid-if isEnterprise}}
+            
+            <!-- those have enterparise version -->
+            {{#if (eq selectedOauthType 'github') }} 
               <div class="checkbox pt-10">
-                <label class="acc-label pb-5">{{input type="checkbox" checked=secure}} {{t 'authPage.github.notAuthenticated.form.isGHEnterprise.labelText'}} (<code>https://</code>).</label>
+                <label class="acc-label pb-5">{{input type="checkbox" checked=isEnterprise}} {{#if (eq selectedOauthType 'github')}} {{t 'authPage.github.notAuthenticated.form.ghEnterprise.labelText'}} {{/if}} {{#if (eq selectedOauthType 'gitlab')}} {{t 'authPage.github.notAuthenticated.form.glPrivate.labelText'}}{{/if}}</label>
               </div>
-            {{/liquid-if}}
+            {{/if}}
+            {{#if (eq selectedOauthType 'gitlab') }} 
+              <div class="checkbox pt-10">
+                <label class="acc-label pb-5">{{input type="checkbox" checked=isEnterprise}} {{#if (eq selectedOauthType 'github')}} {{t 'authPage.github.notAuthenticated.form.ghEnterprise.labelText'}} {{/if}} {{#if (eq selectedOauthType 'gitlab')}} {{t 'authPage.github.notAuthenticated.form.glPrivate.labelText'}}{{/if}}</label>
+              </div>
+            {{/if}}
+
             {{#liquid-if isEnterprise}}
-            <label class="acc-label pb-5">{{t 'authPage.github.notAuthenticated.form.enterpriseHost.labelText'}}{{field-required}}</label>
-             {{#if (eq selectedOauthType 'github')}} {{input type="text" value=oauthModel.hostName classNames="form-control" placeholder=(t 'authPage.github.notAuthenticated.form.enterpriseHost.placeholder')}}
-             {{/if}} 
-             {{#if (eq selectedOauthType 'gitlab')}} {{input type="text" value=oauthModel.hostName classNames="form-control" placeholder=(t 'authPage.github.notAuthenticated.form.enterpriseHost.placeholder2')}}
-             {{/if}}
+              {{#if (eq selectedOauthType 'github')}} 
+                <div class="checkbox pt-10">
+                    <label class="acc-label pb-5">{{input type="checkbox" checked=secure}} {{t 'authPage.github.notAuthenticated.form.isGHEnterprise.labelText'}} (<code>https://</code>).</label>
+                  </div>
+                <label class="acc-label pb-5">{{t 'authPage.github.notAuthenticated.form.enterpriseHost.labelText'}}{{field-required}}</label>
+                {{input type="text" value=oauthModel.hostName classNames="form-control" placeholder=(t 'authPage.github.notAuthenticated.form.enterpriseHost.placeholder')}}
+              {{/if}} 
+              {{#if (eq selectedOauthType 'gitlab')}} 
+                <label class="acc-label pb-5">{{t 'authPage.github.notAuthenticated.form.enterpriseHost.labelText'}}{{field-required}}</label>
+                {{input type="text" value=oauthModel.hostName classNames="form-control" placeholder=(t 'authPage.github.notAuthenticated.form.enterpriseHost.placeholder2')}}
+              {{/if}}
             {{/liquid-if}}
           </div>
         </div>
@@ -218,7 +266,5 @@
     </section>
   </form>
 {{/unless}}
-
-
 
 {{/accordion-list-item}}
